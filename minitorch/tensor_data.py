@@ -42,9 +42,12 @@ def index_to_position(index: Index, strides: Strides) -> int:
     Returns:
         Position in storage
     """
-
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    position = 0
+    for i in range(index.shape[0]):
+        position += strides[i]*index[i]
+    # print("index_to_position called: " + str(index) + " -> " + str(position))
+    # print("strides were: " + str(strides))
+    return position
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -60,8 +63,21 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # print("The ordinal is:" + str(ordinal) + " and the shape is: " + str(shape))
+    subordinal = ordinal
+    prod = 1
+    for i in range(len(shape)):
+        prod = prod*shape[i]
+    for i in range(len(shape)):
+        prod = prod//shape[i]
+        # print("Subordinal is: " + str(subordinal))
+        out_index[i] = subordinal//prod
+        subordinal = subordinal % prod
+        # print("Index " + str(i) + " is: " + str(out_index[i]))
+    return
+    
+    # wow that worked
+
 
 
 def broadcast_index(
@@ -222,8 +238,26 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
+        (storage, shape, strides,) = self.tuple()
+        new_storage = storage[:]
+        n = len(order)
+        new_shape = []
+        new_strides = []
+        # print("shape is:"  + str(shape))
+        # print("The order is: " + str(order))
+        for i in range(n):
+            # print("order[" + str(i) + "] is: " + str(order[i]))
+            # print("shape[order[i]] is: " + str(shape[order[i]]))
+            new_shape.append(shape[order[i]])
+            new_strides.append(strides[order[i]])
+            
+            
+        
+        # print("new_shape is: " + str(new_shape))
+        # print("new strides are: " + str(new_strides))
+        # print("---")
+        return TensorData(new_storage, tuple(new_shape), tuple(new_strides))
+        
 
     def to_string(self) -> str:
         s = ""

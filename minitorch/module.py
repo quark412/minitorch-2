@@ -31,11 +31,31 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        self.training = True
+        for m in self.modules():
+            m.train()
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        self.training = False
+        for m in self.modules():
+            m.eval()
+
+    """
+    def named_parameters_addstring(self, s: str) -> Sequence[Tuple[str, Parameter]]:
+        l = [(s + "." + a, b) for a, b in self._parameters.items()]
+        m: Dict[str, Module] = self.__dict__["_modules"]
+        name_mod_pairs = [(a, b) for a, b in m.items()]
+        for x in name_mod_pairs:
+            current_module = x[1]
+            name_of_current_module = x[0]
+            l = l + list(
+                current_module.named_parameters_addstring(name_of_current_module)
+            )
+        return l
+
+        # trying to glue the name of the module to the beginning of all the strings that come from it
+    """
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
@@ -45,11 +65,26 @@ class Module:
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        raise NotImplementedError("Need to include this file from past assignment.")
+
+        l = [(a, b) for a, b in self._parameters.items()]
+        m: Dict[str, Module] = self.__dict__["_modules"]
+        name_mod_pairs = [(a, b) for a, b in m.items()]
+        for x in name_mod_pairs:
+            current_module = x[1]
+            name_of_current_module = x[0]
+            for y in current_module.named_parameters():
+                l.append((name_of_current_module + "." + y[0], y[1]))
+        return l
 
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        raise NotImplementedError("Need to include this file from past assignment.")
+
+        l = self.named_parameters()
+        l2 = []
+        for x in l:
+            # print(x)
+            l2.append(x[1])
+        return l2
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
@@ -115,9 +150,9 @@ class Module:
 
 class Parameter:
     """
-    A Parameter is a special container stored in a `Module`.
+    A Parameter is a special container stored in a :class:`Module`.
 
-    It is designed to hold a `Variable`, but we allow it to hold
+    It is designed to hold a :class:`Variable`, but we allow it to hold
     any value for testing.
     """
 
