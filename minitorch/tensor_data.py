@@ -44,7 +44,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
     position = 0
     for i in range(index.shape[0]):
-        position += strides[i]*index[i]
+        position += strides[i] * index[i]
     # print("index_to_position called: " + str(index) + " -> " + str(position))
     # print("strides were: " + str(strides))
     return position
@@ -67,17 +67,16 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     subordinal = ordinal
     prod = 1
     for i in range(len(shape)):
-        prod = prod*shape[i]
+        prod = prod * shape[i]
     for i in range(len(shape)):
-        prod = prod//shape[i]
+        prod = prod // shape[i]
         # print("Subordinal is: " + str(subordinal))
-        out_index[i] = subordinal//prod
+        out_index[i] = subordinal // prod
         subordinal = subordinal % prod
         # print("Index " + str(i) + " is: " + str(out_index[i]))
     return
-    
-    # wow that worked
 
+    # wow that worked
 
 
 def broadcast_index(
@@ -99,8 +98,19 @@ def broadcast_index(
     Returns:
         None
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    s1 = list(big_shape)
+    s2 = list(shape)
+    d = len(s1) - len(s2)
+    for j in range(len(s2)):
+        i = j + d  # the jth index that actually corresponds to something in s2
+        # before index d in s1, there's no corresponding index in s2
+        if s2[j] == 1:  # only one thick along the jth dimension
+            out_index[j] = 0
+        else:
+            out_index[j] = (
+                big_index[i] % s2[j]
+            )  # if e.g. s2 is (3,) and s1 is (9,), we'd want 7 to become 7 mod 3 = 1
+    return
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -117,8 +127,36 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+
+    s1 = list(shape1)
+    s2 = list(shape2)
+    d = len(s1) - len(s2)
+
+    if d < 0:
+        d_ones = []
+        for i in range(-d):
+            d_ones.append(1)
+        s1 = d_ones + s1
+    elif d > 0:
+        d_ones = []
+        for i in range(d):
+            d_ones.append(1)
+        s2 = d_ones + s2
+
+    for a, b in zip(s1, s2):
+        print(a)
+        print(b)
+        print("-")
+        a_divides_b = a % b == 0
+        b_divides_a = b % a == 0
+        if a_divides_b or b_divides_a:
+            pass
+        elif (a == 1) or (b == 1):
+            pass
+        else:
+            raise IndexingError
+    br = [max(a, b) for a, b in zip(s1, s2)]
+    return tuple(br)
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -238,7 +276,11 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        (storage, shape, strides,) = self.tuple()
+        (
+            storage,
+            shape,
+            strides,
+        ) = self.tuple()
         new_storage = storage[:]
         n = len(order)
         new_shape = []
@@ -250,14 +292,11 @@ class TensorData:
             # print("shape[order[i]] is: " + str(shape[order[i]]))
             new_shape.append(shape[order[i]])
             new_strides.append(strides[order[i]])
-            
-            
-        
+
         # print("new_shape is: " + str(new_shape))
         # print("new strides are: " + str(new_strides))
         # print("---")
         return TensorData(new_storage, tuple(new_shape), tuple(new_strides))
-        
 
     def to_string(self) -> str:
         s = ""
