@@ -6,11 +6,18 @@ import random
 
 import minitorch
 
+# there is no task 1_5...
+
 
 class Network(minitorch.Module):
     def __init__(self, hidden_layers):
         super().__init__()
-        raise NotImplementedError("Need to include this file from past assignment.")
+
+        self.layer1 = Linear(2, hidden_layers)
+        self.layer2 = Linear(hidden_layers, hidden_layers)
+        self.layer3 = Linear(hidden_layers, 1)
+
+        # why this???
 
     def forward(self, x):
         middle = [h.relu() for h in self.layer1.forward(x)]
@@ -39,7 +46,15 @@ class Linear(minitorch.Module):
             )
 
     def forward(self, inputs):
-        raise NotImplementedError("Need to include this file from past assignment.")
+        in_size = self.weights.len()
+        out_size = self.weights[0].len()
+        assert inputs.len() == in_size
+        outputs = []
+        for j in range(out_size):
+            outputs.append(0.0)
+            for i in range(in_size):
+                outputs[j] += inputs[i] * self.weight[i][j]
+        return outputs
 
 
 def default_log_fn(epoch, total_loss, correct, losses):

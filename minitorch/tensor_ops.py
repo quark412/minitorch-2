@@ -268,8 +268,31 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        p = 1
+        for s in list(out_shape):
+            p = p * s
+        # now p is the product of the out_shape size
+
+        out_index = []
+        for t in range(len(out_shape)):
+            out_index.append(0)  # to make sure the out_index is large enough
+
+        in_index = []
+        for t in range(len(in_shape)):
+            in_index.append(0)
+
+        for ordinal in range(p):
+            to_index(ordinal, out_shape, out_index)  # get the current out_index
+
+            broadcast_index(
+                out_index, out_shape, in_shape, in_index
+            )  # broadcast to corresp in_index
+
+            in_position = index_to_position(in_index, in_strides)
+            val = in_storage[in_position]  # find the value at that in_index
+
+            out_position = index_to_position(out_index, out_strides)
+            out[out_position] = fn(val)  # put f(val) at that out_index
 
     return _map
 
@@ -318,8 +341,43 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+
+        p = 1
+        for s in list(out_shape):
+            p = p * s
+        # now p is the product of the out_shape size
+
+        out_index = []
+        for t in range(len(out_shape)):
+            out_index.append(0)
+        a_index = []
+        for t in range(len(a_shape)):
+            a_index.append(0)
+        b_index = []
+        for t in range(len(b_shape)):
+            b_index.append(0)
+
+        for ordinal in range(p):
+            to_index(ordinal, tuple(out_shape), out_index)  # get the current out_index
+
+            broadcast_index(
+                out_index, tuple(out_shape), tuple(a_shape), a_index
+            )  # broadcast to corresp a_index
+
+            broadcast_index(
+                out_index, tuple(out_shape), tuple(b_shape), b_index
+            )  # broadcast to corresp b_index
+
+            a_position = index_to_position(a_index, a_strides)
+            a_val = a_storage[a_position]  # find the value at that a_index
+
+            b_position = index_to_position(b_index, b_strides)
+            b_val = b_storage[b_position]  # find the value at that b_index
+
+            out_position = index_to_position(out_index, out_strides)
+            out[out_position] = fn(
+                a_val, b_val
+            )  # put f(a_val, b_val) at that out_index
 
     return _zip
 
@@ -354,8 +412,34 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+
+        p = 1
+        for s in list(a_shape):
+            p = p * s
+        # now p is the product of the a_shape size
+
+        out_index = []
+        for t in range(len(out_shape)):
+            out_index.append(0)
+
+        a_index = []
+        for t in range(len(a_shape)):
+            a_index.append(0)
+
+        for ordinal in range(p):
+            to_index(ordinal, a_shape, a_index)  # get the current a_index
+
+            broadcast_index(
+                a_index, a_shape, out_shape, out_index
+            )  # broadcast to corresp in_index
+
+            a_position = index_to_position(a_index, a_strides)
+            val = a_storage[a_position]  # find the value at that in_index
+
+            out_position = index_to_position(out_index, out_strides)
+            out[out_position] = fn(
+                val, out[out_position]
+            )  # put f(val, current_out_val) at that out_index
 
     return _reduce
 

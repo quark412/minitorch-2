@@ -43,7 +43,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
     """
     position = 0
-    for i in range(index.shape[0]):
+    for i in range(len(index)):
         position += strides[i] * index[i]
     # print("index_to_position called: " + str(index) + " -> " + str(position))
     # print("strides were: " + str(strides))
@@ -66,14 +66,20 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     # print("The ordinal is:" + str(ordinal) + " and the shape is: " + str(shape))
     subordinal = ordinal
     prod = 1
+    # new strategy, what if we force the out_index to be a list
+
+    # out_index_list = []
+
     for i in range(len(shape)):
         prod = prod * shape[i]
     for i in range(len(shape)):
         prod = prod // shape[i]
         # print("Subordinal is: " + str(subordinal))
         out_index[i] = subordinal // prod
+        # print("out_index is: " + str(out_index))
         subordinal = subordinal % prod
         # print("Index " + str(i) + " is: " + str(out_index[i]))
+    # out_index = tuple(out_index_list)
     return
 
     # wow that worked
@@ -101,15 +107,27 @@ def broadcast_index(
     s1 = list(big_shape)
     s2 = list(shape)
     d = len(s1) - len(s2)
+    # print("broadcasting index:")
+    # print("big_shape is: " + str(s1))
+    # print("shape is: " + str(s2))
+    # print("big_index is: " + str(big_index))
+    assert len(list(big_index)) == len(s1)
+
+    # out_index_list = []
+
     for j in range(len(s2)):
         i = j + d  # the jth index that actually corresponds to something in s2
         # before index d in s1, there's no corresponding index in s2
+        # print("i = " + str(i))
+        # print("j = " + str(j))
+        # print("s2[j] = " + str(s2[j]))
+        # print("big_index[i] = " + str(big_index[i]))
         if s2[j] == 1:  # only one thick along the jth dimension
             out_index[j] = 0
         else:
-            out_index[j] = (
-                big_index[i] % s2[j]
-            )  # if e.g. s2 is (3,) and s1 is (9,), we'd want 7 to become 7 mod 3 = 1
+            out_index[j] = big_index[i] % s2[j]
+            # if e.g. s2 is (3,) and s1 is (9,), we'd want 7 to become 7 mod 3 = 1
+    # out_index = tuple(out_index_list)
     return
 
 
@@ -144,9 +162,6 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         s2 = d_ones + s2
 
     for a, b in zip(s1, s2):
-        print(a)
-        print(b)
-        print("-")
         a_divides_b = a % b == 0
         b_divides_a = b % a == 0
         if a_divides_b or b_divides_a:
@@ -281,7 +296,7 @@ class TensorData:
             shape,
             strides,
         ) = self.tuple()
-        new_storage = storage[:]
+        new_storage = storage.copy()
         n = len(order)
         new_shape = []
         new_strides = []

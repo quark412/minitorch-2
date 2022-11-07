@@ -216,7 +216,9 @@ class Tensor:
     def mean(self, dim: Optional[int] = None) -> Tensor:
         "Compute the mean over dimension `dim`"
         if dim is not None:
-            return self.sum(dim) / self.shape[dim]
+            # seriously?? why did this work
+            a = int(self.shape[dim])
+            return self.sum(dim) / a
         else:
             return self.sum() / self.size
 
@@ -312,6 +314,20 @@ class Tensor:
         out._type_(self.backend)
         return out
 
+    def ones(self, shape: Optional[UserShape] = None) -> Tensor:
+        def one(shape: UserShape) -> Tensor:
+            return Tensor.make(
+                [1.0] * int(operators.prod(shape)), shape, backend=self.backend
+            )
+
+        if shape is None:
+            out = one(self.shape)
+        else:
+            out = one(shape)
+        out._type_(self.backend)
+        print("ones in tensor.py called")
+        return out
+
     def tuple(self) -> Tuple[Storage, Shape, Strides]:
         return self._tensor.tuple()
 
@@ -364,6 +380,8 @@ class Tensor:
         if grad_output is None:
             assert self.shape == (1,), "Must provide grad_output if non-scalar"
             grad_output = Tensor.make([1.0], (1,), backend=self.backend)
+        # print("---")
+        # print("backward was called on " + str(self) + " with grad_output = " + str(grad_output))
         backpropagate(self, grad_output)
 
     def zero_grad_(self) -> None:  # pragma: no cover
