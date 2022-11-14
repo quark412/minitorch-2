@@ -89,7 +89,7 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         else:
             if node.history is not None:
                 parents = node.parents
-                # print("The parents of " + str(node.unique_id) + " are: " + str([x.unique_id for x in parents]))
+                # print("The parents of {} are: {}".format(str(node.unique_id), str([x.unique_id for x in parents]))
                 for p in parents:
                     visit(p)
             # else:
@@ -157,10 +157,10 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
             node.accumulate_derivative(d[node.unique_id])
         else:
             d_out = d[node.unique_id]
-            # print("current node is :" + str(node.unique_id) + " and d_out is: " + str(d_out))
+            # print("current node is {} and d_out is {}".format(str(node.unique_id), str(d_out)))
             parents_and_their_derivatives = node.chain_rule(d_out)
             for a, b in parents_and_their_derivatives:
-                # print("The parent is" + str(a) + " and the derivative is " + str(b))
+                # print("The parent is {} and the derivative is {}".format(str(a), str(b))
                 if a.unique_id in d:
                     d[a.unique_id] = d[a.unique_id] + b
                 else:
